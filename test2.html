@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>html2canvas php proxy</title>
+        <!--<script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>        -->
+        <script type="text/javascript" src="js/html2canvas.js"></script>
+        <script>
+        //<![CDATA[
+        (function() {
+            window.onload = function(){
+                /*
+                html2canvas(document.body, {
+                    "logging": true, //Enable log (use Web Console for get Errors and Warnings)
+                    "proxy":"html2canvasproxy.php",
+                    "useCORS" : true,
+                    "onrendered": function(canvas) {
+                        var img = new Image();
+                        img.onload = function() {
+                            img.onload = null;
+                            document.body.appendChild(img);
+                        };
+                        img.onerror = function() {
+                            img.onerror = null;
+                            if(window.console.log) {
+                                window.console.log("Not loaded image from canvas.toDataURL");
+                            } else {
+                                alert("Not loaded image from canvas.toDataURL");
+                            }
+                        };
+                        img.src = canvas.toDataURL("image/png");
+                    }
+                });*/
+            html2canvas(document.body, {
+                //allowTaint : true,
+                proxy: "html2canvasproxy.php",
+                onrendered: function(canvas) {
+                // canvas is the final rendered <canvas> element
+                    try{
+                        var ctx = canvas.getContext("2d");
+                        var data = ctx.getImageData(0,0, canvas.width ,canvas.height);
+
+                        var c2 = document.createElement('canvas')
+                        c2.width = data.width;
+                        c2.height = data.height;
+                        var cx2 = c2.getContext("2d")
+                        cx2.putImageData(data,0,0);
+                         var dataURL = c2.toDataURL('image/png');
+                        var img = new Image
+                        img.src = dataURL
+                        document.body.appendChild(img)
+                    }catch(err){
+                        console.log(err)
+                    }
+                }
+            })
+            };
+        })();
+        //]]>
+        </script>
+    </head>
+    <body>
+
+        <table>
+            <tr>
+                
+                <td>
+                    <p>from http://img.baidu.com/</p>
+                    <img alt="" src="http://img.baidu.com/img/iknow/sula201503/chenguangjihuashouyebanenr.jpg" width="300"/>
+                </td>
+                <td>
+                    <p>from http://pic1.xwimg.com/</p>
+                    <img alt="" src="http://pic1.xwimg.com/usermedia/upload/weibo/2012-11/610_0-xinwo13520803748308.jpg" width="300"/>
+                </td>
+                <td>
+                    <p>from http://pic1.xwimg.com/</p>
+                    <img alt="" src="https://www.baidu.com/img/bdlogo.png" width="300"/>
+                </td>
+                
+                
+               
+                
+            </tr>
+        </table>
+    </body>
+</html>

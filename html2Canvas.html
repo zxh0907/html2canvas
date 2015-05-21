@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<title>html2Canvas练习</title>
+		<style type="text/css">
+		body{padding:0; margin:0; }
+		.outer div{padding:20px; border:3px solid #666;}
+		.gray{background:gray;}
+		.pink{background:pink;}
+		.lightblue{background:lightblue;}
+		.lightgreen{background:lightgreen;}
+		.imgList{list-style: none; width:100%; overflow: hidden;}
+		.imgList li{float:left;margin-right:10px; width:150px; height:150px; line-height: 150px; overflow:hidden; border:1px solid #ccc; text-align: center;}
+		.imgList img{width:150px; height:150px;}
+		.fbkPanel{font-size:12px; border:2px solid #ccc; position: fixed; right:0; bottom:0; z-index: 100; background:#fff; padding:10px; width:280px;}
+		.fbkPanel *{margin:0; padding:0;}
+		.fbkPanel dl dt,.fbkPanel dl dd{padding:5px 0; margin:0;}
+		.fbkPanel dl dd{color:#999;}
+		.fbkPanel textarea{width:100%;}
+		.fbkPanel p{text-align: center;padding:10px 0; border-top:1px solid #eee; margin-top:10px;}
+		.fbkPanel button{padding:3px 10px;}
+		</style>
+	</head>
+	<body>
+	<div id="wrap">
+		<div class="outer">
+			<div class="pink">
+				abcdegfegttddaa
+				<div class="gray">
+					adafdsfdsadfdsfdsf
+					<div class="lightblue">adfdsafdsadfda
+						<div class="lightgreen"><img src="https://ss2.baidu.com/6ONYsjip0QIZ8tyhnq/it/u=1923917849,2485524709&fm=58" /> <img src="http://pic1.xwimg.com/usermedia/upload/weibo/2012-11/610_0-xinwo13520803748308.jpg" alt="" width="300"/> <img src="http://tb1.bdstatic.com/tb/static-encourage/widget/firework/img/firework_sender_cb20487.png" /></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+
+		<button id="btnCutImg" type="button">截图</button>
+		<ul class="imgList" id="imgList">			
+		</ul>
+	</div>
+		<div id="fbkPanel" class="fbkPanel">
+			<form action="abc" method="post" id="fbkForm" target="">
+					<dl>
+						<dt>反馈内容：</dt>
+						<dd><textarea rows="5" name="content"></textarea></dd>
+						<dd>截图：<span id="cutimgField"><input type="file" name="image"/></span></dd>
+						
+					</dl>
+					
+					<p><button type="button" id="btnSubmit">提交</button></p>
+			</form>
+		</div>
+		
+		<script type="text/javascript" src="js/html2canvas.js"></script>
+		<script type="text/javascript" src="js/cutImage.js"></script>
+		<script type="text/javascript">	
+		
+		document.getElementById("btnCutImg").onclick = function(){
+			CutImage.init({
+				"useProxy" : true,
+				"beforeRender": function(rects){
+					var imgList = document.getElementById("imgList");
+					var htm = [];
+
+					for(var i = 0, l = rects.length; i < l; i ++){
+						htm.push('<li id="cutImg_loading_'+ i +'">loading</li>');
+					}
+
+					imgList.innerHTML = imgList.innerHTML + htm.join("");
+				},
+				"onRendered": function(data){
+					var imgs = data["imgs"];
+					for(var i = 0, l = imgs.length; i < l; i ++){
+						var li = document.getElementById("cutImg_loading_" + i);
+						li.innerHTML = '<a href="' + imgs[i].dataUrl + '" target="_blank"><img src="' + imgs[i].dataUrl + '" /></a>';
+						li.removeAttribute("id");
+					}
+				}
+			});
+		};
+		function initForm(){
+			var ctx = document.createElement('canvas').getContext('2d');
+			if(ctx){
+				var cutimgField = document.getElementById("cutimgField");
+				cutimgField.innerHTML = '<button type="button" id="btnCutImg2">截图</button>点击可在当前页面截图<input type="hidden" id="hidImgs" value="" name="image"/>';
+				document.getElementById("btnCutImg2").onclick = function(){
+					CutImage.init({ 
+						"useProxy" : true ,
+						"maskArea":  document.getElementById("#wrap"),
+						"showFinish" : false 
+					});
+				};
+			} 
+
+			document.getElementById("btnSubmit").onclick = function(){
+				var btn = this;
+				this.value="正在提交";
+				this.disabled = true;
+				var submitFbk = function(){
+					var ifm = document.createElement("iframe");
+					ifm.style.display = "none";
+					ifm.id = "fbkIfr";
+					ifm.name = "fbkIfr";
+					var form = document.getElementById("fbkForm");
+					form.target = "fbkIfr";				
+					var tmpIfr = document.getElementById("fbkIfr");
+					if(tmpIfr){
+						document.body.removeChild(tmpIfr);
+					}
+					
+					document.body.appendChild(ifm);
+					form.submit();
+					btn.disabled = false;
+				};
+				if(ctx){
+					if(CutImage.mask){
+						CutImage.generateMaskImg({
+							"beforeRender" : function(){
+								document.getElementById("fbkPanel").style.display = "none";
+							},"onRenderedCbk" : function(data){
+								document.getElementById("fbkPanel").style.display = "block";
+								document.getElementById("hidImgs").value = data.imgs[0].dataUrl;
+								submitFbk();
+								CutImage.unstall();
+							}
+						});
+					} else {
+						document.getElementById("hidImgs").value = "";
+						submitFbk();
+					}
+				} else {
+					submitFbk();
+				}
+				
+				
+			};
+		}
+		initForm();
+		
+		</script>
+	</body>
+</html>
